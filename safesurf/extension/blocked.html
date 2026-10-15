@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafeSurf - Access Restricted</title>
+  <link rel="stylesheet" href="blocked.css">
+</head>
+<body>
+  <div class="shield-ambient"></div>
+  <div class="ambient-glow"></div>
+
+  <main class="block-container">
+    <div class="block-card">
+      <!-- Shield Header -->
+      <div class="shield-icon-container">
+        <div class="shield-halo"></div>
+        <img src="icons/icon128.png" alt="SafeSurf Shield" class="shield-logo" />
+      </div>
+
+      <div class="category-pill">
+        <span class="pulse-indicator"></span>
+        <span id="categoryName">Adult Content Blocked</span>
+      </div>
+
+      <h1 class="block-title">Access Restricted by SafeSurf</h1>
+      <p class="block-description">
+        This web address was intercepted because it contains adult, explicit, or harmful material restricted by your active SafeSurf policy.
+      </p>
+
+      <!-- Target Info Box -->
+      <div class="target-info-card">
+        <div class="info-row">
+          <span class="info-label">Attempted URL:</span>
+          <span class="info-value url-display" id="blockedUrl">Unknown destination</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Protection Mode:</span>
+          <span class="info-value mode-active">Strict Real-time Shield (Active)</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Timestamp:</span>
+          <span class="info-value" id="blockedTimestamp">Just now</span>
+        </div>
+      </div>
+
+      <!-- Mindful Reset Message -->
+      <div class="quote-card">
+        <svg class="quote-icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+          <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+        </svg>
+        <p class="quote-text" id="quoteText">
+          "The secret of change is to focus all of your energy not on fighting the old, but on building the new."
+        </p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button class="btn btn-primary" id="btnGoBack">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"></path>
+          </svg>
+          <span>Return to Safety</span>
+        </button>
+
+        <button class="btn btn-secondary" id="btnSafeHome">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+          <span>Safe Home</span>
+        </button>
+      </div>
+
+      <!-- Footer Info -->
+      <div class="block-footer">
+        <span>Protected by <strong>SafeSurf v1.0.0</strong></span>
+        <span>•</span>
+        <a href="#" id="linkLearnMore">Need to configure exceptions? Open SafeSurf Popup</a>
+      </div>
+    </div>
+  </main>
+
+  <script src="blocked.js"></script>
+</body>
+</html>

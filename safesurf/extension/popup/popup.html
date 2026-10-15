@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafeSurf Protection</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <!-- Header -->
+    <header class="popup-header">
+      <div class="brand">
+        <div class="brand-icon-wrapper">
+          <img src="../icons/icon48.png" alt="SafeSurf Logo" class="brand-icon" />
+          <span class="pulse-ring" id="pulseRing"></span>
+        </div>
+        <div class="brand-text">
+          <h1>SafeSurf</h1>
+          <span class="brand-tagline">AI Content Shield</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <button class="nav-tab active" id="tabMainBtn" title="Protection Overview">Shield</button>
+        <button class="nav-tab" id="tabRulesBtn" title="Manage Whitelist & Blacklist">Rules</button>
+      </div>
+    </header>
+
+    <!-- VIEW 1: Main Shield Dashboard -->
+    <main class="view-panel active" id="viewMain">
+      <!-- Master Protection Hero Card -->
+      <section class="card hero-card" id="heroCard">
+        <div class="hero-left">
+          <div class="status-indicator">
+            <span class="status-dot" id="statusDot"></span>
+            <span class="status-label" id="statusLabel">Protection Active</span>
+          </div>
+          <p class="hero-subtext" id="heroSubtext">Real-time filtering of 18+ domains, SafeSearch & profanity</p>
+        </div>
+
+        <!-- Toggle Switch -->
+        <label class="switch" for="protectionToggle" aria-label="Toggle SafeSurf Protection">
+          <input type="checkbox" id="protectionToggle" checked>
+          <span class="slider"></span>
+        </label>
+      </section>
+
+      <!-- Database Status Card (Phase 2) -->
+      <div class="db-status-banner">
+        <div class="db-dot"></div>
+        <span>Threat Database: <strong id="dbCountDisplay">988,911</strong> adult domains active</span>
+      </div>
+
+      <!-- Incognito Status Banner -->
+      <section class="card incognito-card" id="incognitoCard">
+        <div class="incognito-header">
+          <div class="incognito-title-wrap">
+            <svg class="incognito-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M2 12h20M7 12a5 5 0 0 1 10 0M12 2v3M4 17l2-2M20 17l-2-2"></path>
+            </svg>
+            <span class="incognito-title">Incognito Protection</span>
+          </div>
+          <span class="pill-badge" id="incognitoBadge">Checking...</span>
+        </div>
+
+        <div class="incognito-details" id="incognitoDetails">
+          <p class="incognito-warning" id="incognitoWarningText">
+            SafeSurf requires manual authorization to protect private browsing tabs.
+          </p>
+
+          <button class="btn btn-secondary btn-sm" id="btnConfigureIncognito">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"></path>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path>
+            </svg>
+            <span id="btnIncognitoLabel">Configure in Chrome</span>
+          </button>
+
+          <!-- Expandable Setup Guide -->
+          <div class="setup-guide" id="setupGuide">
+            <div class="guide-step">
+              <span class="step-num">1</span>
+              <span>Link copied to clipboard! Paste in address bar:</span>
+            </div>
+            <div class="copy-box">
+              <code id="extensionUrlCode">chrome://extensions/?id=...</code>
+              <button class="btn-copy" id="btnCopyUrl" title="Copy to clipboard">Copy</button>
+            </div>
+            <div class="guide-step">
+              <span class="step-num">2</span>
+              <span>Scroll down &amp; turn ON <strong>"Allow in Incognito"</strong>.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Protection Stats Counter -->
+      <section class="card stats-card">
+        <div class="stat-item">
+          <span class="stat-number" id="statSitesBlocked">0</span>
+          <span class="stat-title">Sites Blocked</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number" id="statWordsMasked">0</span>
+          <span class="stat-title">Words Masked</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number" id="statImagesBlurred">0</span>
+          <span class="stat-title">Images Blurred</span>
+        </div>
+      </section>
+
+      <!-- Quick Action Utilities -->
+      <div class="action-grid">
+        <button class="btn btn-outline" id="btnPreviewBlock" title="Test Block Page">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+          <span>Block Page</span>
+        </button>
+
+        <button class="btn btn-outline" id="btnTestMasking" title="Test Profanity Masker Page">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 7V4h16v3M9 20h6M12 4v16"></path>
+          </svg>
+          <span>Mask Test</span>
+        </button>
+
+        <button class="btn btn-outline" id="btnRefreshStatus" title="Refresh status">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"></path>
+          </svg>
+          <span>Refresh</span>
+        </button>
+      </div>
+    </main>
+
+    <!-- VIEW 2: Domain Rules (Whitelist / Blacklist / Tester) -->
+    <main class="view-panel" id="viewRules">
+      <!-- Domain Tester Box -->
+      <section class="card rules-input-card">
+        <div class="rules-section-title">
+          <span>Domain Verification &amp; Test</span>
+        </div>
+        <div class="input-row">
+          <input type="text" id="checkDomainInput" placeholder="e.g. pornhub.com or google.com" />
+          <button class="btn btn-primary-sm" id="btnCheckDomain">Test</button>
+        </div>
+        <div class="check-result" id="checkDomainResult"></div>
+      </section>
+
+      <!-- Add Rule Box -->
+      <section class="card rules-input-card">
+        <div class="rules-section-title">
+          <span>Add Custom Rule</span>
+        </div>
+        <div class="input-row">
+          <input type="text" id="newRuleDomain" placeholder="e.g. reddit.com" />
+          <select id="newRuleType" class="select-sm">
+            <option value="whitelist">Whitelist</option>
+            <option value="blacklist">Blacklist</option>
+          </select>
+          <button class="btn btn-primary-sm" id="btnAddRule">Add</button>
+        </div>
+      </section>
+
+      <!-- Custom Whitelist List -->
+      <section class="card rule-list-card">
+        <div class="rules-header">
+          <span class="rule-type-label whitelist-label">Custom Whitelist (Always Allowed)</span>
+          <span class="rule-count" id="whitelistCount">0</span>
+        </div>
+        <div class="tag-container" id="whitelistTags">
+          <span class="empty-hint">No custom whitelisted domains</span>
+        </div>
+      </section>
+
+      <!-- Custom Blacklist List -->
+      <section class="card rule-list-card">
+        <div class="rules-header">
+          <span class="rule-type-label blacklist-label">Custom Blacklist (Always Blocked)</span>
+          <span class="rule-count" id="blacklistCount">0</span>
+        </div>
+        <div class="tag-container" id="blacklistTags">
+          <span class="empty-hint">No custom blacklisted domains</span>
+        </div>
+      </section>
+    </main>
+
+    <!-- Notification Toast -->
+    <div class="toast" id="toastMessage">State updated</div>
+
+    <!-- Footer -->
+    <footer class="popup-footer">
+      <span>SafeSurf Protection Engine</span>
+      <span class="dot-sep">•</span>
+      <span id="footerConnection">Manifest V3</span>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

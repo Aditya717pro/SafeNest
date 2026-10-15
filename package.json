@@ -1,0 +1,26 @@
+{
+  "name": "safesurf-suite",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "SafeSurf - Adult content blocker, SafeSearch enforcer, MERN backend, and React dashboard",
+  "scripts": {
+    "clean-domains": "node safesurf/scripts/clean-domains.js",
+    "download-models": "node safesurf/scripts/download-nsfw-assets.js",
+    "build:blocklist": "node safesurf/scripts/build-blocklist.js",
+    "server": "npm --prefix safesurf/server start",
+    "server:dev": "npm --prefix safesurf/server run dev",
+    "dashboard": "npm --prefix safesurf/dashboard run dev",
+    "dashboard:build": "npm --prefix safesurf/dashboard run build",
+    "info": "echo \"SafeSurf Suite: Load unpacked extension at chrome://extensions | Backend in safesurf/server | Dashboard in safesurf/dashboard\""
+  },
+  "keywords": [
+    "chrome-extension",
+    "safesurf",
+    "manifest-v3",
+    "content-blocker",
+    "mern",
+    "react"
+  ],
+  "author": "",
+  "license": "MIT"
+}

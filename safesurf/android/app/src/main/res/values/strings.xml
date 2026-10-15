@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SafeNest</string>
+
+    <string name="notif_channel">Protection status</string>
+    <string name="notif_title">SafeNest protection is on</string>
+    <string name="notif_text">Filtering adult sites and forcing SafeSearch</string>
+    <string name="notif_stop">Turn off</string>
+</resources>

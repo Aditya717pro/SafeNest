@@ -1,0 +1,67 @@
+/* SafeSurf Content Styles - Phase 3 & 4 */
+
+/* Text Masking Style */
+.safesurf-masked {
+  filter: contrast(0.85);
+  font-family: inherit;
+  border-bottom: 1px dotted rgba(16, 185, 129, 0.4);
+}
+
+/* Image Blurring System (Phase 4) */
+.safesurf-blurred-image {
+  filter: blur(35px) brightness(0.6) !important;
+  opacity: 0.85 !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  -webkit-user-drag: none !important;
+  transition: filter 0.4s ease, opacity 0.4s ease !important;
+}
+
+.safesurf-blur-container {
+  position: relative !important;
+  display: inline-block !important;
+  overflow: hidden !important;
+  border-radius: 8px !important;
+}
+
+.safesurf-blur-overlay {
+  position: absolute !important;
+  inset: 0 !important;
+  background: rgba(15, 23, 42, 0.7) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  z-index: 999999 !important;
+  color: #f8fafc !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  text-align: center !important;
+  padding: 10px !important;
+  pointer-events: all !important;
+  cursor: not-allowed !important;
+  box-shadow: inset 0 0 0 1px rgba(244, 63, 94, 0.3) !important;
+}
+
+.safesurf-blur-badge-icon {
+  width: 24px !important;
+  height: 24px !important;
+  color: #f43f5e !important;
+}
+
+.safesurf-blur-label {
+  color: #fda4af !important;
+  font-size: 11px !important;
+  letter-spacing: 0.4px !important;
+  text-transform: uppercase !important;
+}
+
+.safesurf-blur-subtext {
+  color: #94a3b8 !important;
+  font-size: 10px !important;
+  font-weight: 400 !important;
+}
