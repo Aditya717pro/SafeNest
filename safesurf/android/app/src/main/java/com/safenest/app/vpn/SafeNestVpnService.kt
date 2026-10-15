@@ -9,12 +9,12 @@ import android.content.Intent
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.safenest.app.MainActivity
 import com.safenest.app.R
 import com.safenest.app.data.AppPrefs
+import com.safenest.app.util.AppLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -51,6 +51,8 @@ class SafeNestVpnService : VpnService() {
         startForeground(NOTIFICATION_ID, buildNotification())
 
         if (intent?.action == ACTION_STOP) {
+            AppPrefs(this).protectionEnabled = false
+            AppLog.d("VPN stopping (user requested)")
             teardown()
             stopForegroundCompat()
             stopSelf()
@@ -64,6 +66,7 @@ class SafeNestVpnService : VpnService() {
     override fun onRevoke() {
         // The user or another VPN disabled us system-side.
         AppPrefs(this).protectionEnabled = false
+        AppLog.d("VPN stopping (permission revoked)")
         teardown()
         stopForegroundCompat()
         stopSelf()
@@ -94,24 +97,28 @@ class SafeNestVpnService : VpnService() {
 
         // Pull encrypted-DNS resolvers into the tunnel so we can drop them.
         BypassBlocklist.IPV4_ROUTES.forEach { route ->
-            val (address, prefix) = route.split('/')
-            builder.addRoute(address, prefix.toInt())
+            val parts = route.split('/')
+            if (parts.size == 2) {
+                builder.addRoute(parts[0], parts[1].toInt())
+            }
         }
         BypassBlocklist.IPV6_ROUTES.forEach { route ->
-            val (address, prefix) = route.split('/')
-            builder.addRoute(address, prefix.toInt())
+            val parts = route.split('/')
+            if (parts.size == 2) {
+                builder.addRoute(parts[0], parts[1].toInt())
+            }
         }
 
         val iface = try {
             builder.establish()
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to establish tunnel", e)
+            AppLog.e("Failed to establish tunnel", e)
             null
         }
 
         if (iface == null) {
             // Consent was revoked or another VPN is active: reflect reality in the UI.
-            Log.w(TAG, "establish() returned null - consent missing or VPN conflict")
+            AppLog.w("establish() returned null - consent missing or VPN conflict")
             AppPrefs(this).protectionEnabled = false
             running.value = false
             stopForegroundCompat()
@@ -120,12 +127,12 @@ class SafeNestVpnService : VpnService() {
         }
 
         tunInterface = iface
-        val dns = DnsEngine(
-            store = DomainStore.load(this),
-            whitelist = prefs.whitelist,
-            blacklist = prefs.blacklist,
-            protectSocket = { socket -> protect(socket) }
-        )
+        val store = DomainStore.load(this)
+        val adultInfo = store?.let { "${it.size} domains" }
+            ?: "fallback (${FallbackBlocklist.DOMAINS.size})"
+        AppLog.d("VPN started: adult list loaded ($adultInfo)")
+        val policy = FilterPolicy(store, prefs.whitelist, prefs.blacklist)
+        val dns = DnsEngine(policy = policy, protectSocket = { socket -> protect(socket) })
         engine = dns
         blockedCount.value = 0
         running.value = true
@@ -150,7 +157,7 @@ class SafeNestVpnService : VpnService() {
             }
         } catch (e: Exception) {
             // Reading fails when the interface is closed during teardown; that is expected.
-            if (!stopping.get()) Log.w(TAG, "Tunnel read loop ended", e)
+            if (!stopping.get()) AppLog.w("Tunnel read loop ended: ${e.message}")
         } finally {
             runCatching { input.close() }
             runCatching { output.close() }
@@ -244,7 +251,7 @@ class SafeNestVpnService : VpnService() {
     }
 
     companion object {
-        private const val TAG = "SafeNestVpn"
+        private const val TAG_LEGACY = "SafeNestVpn"
         private const val ACTION_STOP = "com.safenest.app.action.STOP"
         private const val CHANNEL_ID = "safenest_protection"
         private const val NOTIFICATION_ID = 1001

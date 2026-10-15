@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -39,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -46,8 +48,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.safenest.app.BuildConfig
 import com.safenest.app.data.AppPrefs
 import com.safenest.app.data.PinManager
+import com.safenest.app.util.AppLog
 import com.safenest.app.vpn.VpnController
 
 /** What the PIN dialog is currently asking for. */
@@ -61,6 +65,12 @@ private sealed interface PinDialogMode {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(prefs: AppPrefs) {
+    var showDebug by remember { mutableStateOf(false) }
+    if (showDebug && BuildConfig.DEBUG) {
+        DebugScreen(prefs, onBack = { showDebug = false })
+        return
+    }
+
     val context = LocalContext.current
     val running by VpnController.running.collectAsStateWithLifecycle()
     val blocked by VpnController.blockedCount.collectAsStateWithLifecycle()
@@ -73,7 +83,9 @@ fun HomeScreen(prefs: AppPrefs) {
     val consentLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) VpnController.start(context)
+        if (result.resultCode == Activity.RESULT_OK) {
+            VpnController.start(context)
+        }
     }
 
     // Android 13+ needs runtime permission to show the ongoing notification.
@@ -94,14 +106,29 @@ fun HomeScreen(prefs: AppPrefs) {
     // the app was force-stopped). Consent must still be granted to restart silently.
     LaunchedEffect(Unit) {
         if (prefs.protectionEnabled && !VpnController.running.value) {
-            if (VpnController.consentIntent(context) == null) VpnController.start(context)
+            if (VpnController.consentIntent(context) == null) {
+                VpnController.start(context)
+            }
         }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("SafeNest") },
+                title = {
+                    Text(
+                        "SafeNest",
+                        modifier = Modifier.pointerInput(Unit) {
+                            detectTapGestures(
+                                onLongPress = {
+                                    if (BuildConfig.DEBUG) {
+                                        showDebug = true
+                                    }
+                                }
+                            )
+                        }
+                    )
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -126,6 +153,7 @@ fun HomeScreen(prefs: AppPrefs) {
                         if (intent != null) consentLauncher.launch(intent)
                         else VpnController.start(context)
                     } else if (pinEnabled) {
+                        AppLog.d("PIN asked: turn protection OFF")
                         dialog = PinDialogMode.ConfirmDisable
                     } else {
                         VpnController.stop(context)
@@ -137,8 +165,14 @@ fun HomeScreen(prefs: AppPrefs) {
 
             PinSection(
                 pinEnabled = pinEnabled,
-                onSetPin = { dialog = PinDialogMode.SetPin },
-                onRemovePin = { dialog = PinDialogMode.DisablePin }
+                onSetPin = {
+                    AppLog.d("PIN dialog: set new PIN")
+                    dialog = PinDialogMode.SetPin
+                },
+                onRemovePin = {
+                    AppLog.d("PIN asked: remove PIN")
+                    dialog = PinDialogMode.DisablePin
+                }
             )
 
             Spacer(Modifier.height(24.dp))

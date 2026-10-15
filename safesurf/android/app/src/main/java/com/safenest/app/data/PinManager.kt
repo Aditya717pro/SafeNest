@@ -1,6 +1,8 @@
 package com.safenest.app.data
 
 import android.util.Base64
+import android.util.Log
+import com.safenest.app.util.AppLog
 import java.security.MessageDigest
 import java.security.SecureRandom
 
@@ -25,19 +27,27 @@ object PinManager {
         prefs.pinSalt = Base64.encodeToString(salt, Base64.NO_WRAP)
         prefs.pinHash = hash(pin, salt)
         prefs.pinEnabled = true
+        AppLog.d("PIN accepted: new PIN set")
     }
 
     fun verify(prefs: AppPrefs, pin: String): Boolean {
         val saltText = prefs.pinSalt ?: return false
         val expected = prefs.pinHash ?: return false
         val salt = Base64.decode(saltText, Base64.NO_WRAP)
-        return expected == hash(pin, salt)
+        return if (expected == hash(pin, salt)) {
+            AppLog.d("PIN accepted")
+            true
+        } else {
+            AppLog.d("PIN rejected")
+            false
+        }
     }
 
     fun clear(prefs: AppPrefs) {
         prefs.pinEnabled = false
         prefs.pinHash = null
         prefs.pinSalt = null
+        AppLog.d("PIN cleared")
     }
 
     private fun hash(pin: String, salt: ByteArray): String {

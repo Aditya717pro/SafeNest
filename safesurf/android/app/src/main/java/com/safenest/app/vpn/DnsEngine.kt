@@ -1,5 +1,6 @@
 package com.safenest.app.vpn
 
+import com.safenest.app.util.AppLog
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
@@ -12,7 +13,7 @@ import java.util.Random
  *   1. parent whitelist ......... forward untouched
  *   2. encrypted-DNS hostnames .. NXDOMAIN (blocks DoH/DoT bootstrapping)
  *   3. custom blacklist ......... NXDOMAIN
- *   4. bundled blocklist ........ NXDOMAIN
+ *   4. bundled blocklist ........ NXDOMAIN (falls back to tiny seed if asset missing)
  *   5. search engines ........... CNAME rewrite to the SafeSearch host
  *   6. everything else .......... forwarded to a public resolver
  *
@@ -20,9 +21,7 @@ import java.util.Random
  * does not get routed back into the tunnel.
  */
 class DnsEngine(
-    private val store: DomainStore?,
-    private val whitelist: Set<String>,
-    private val blacklist: Set<String>,
+    private val policy: FilterPolicy,
     protectSocket: (DatagramSocket) -> Unit
 ) {
 
@@ -48,29 +47,44 @@ class DnsEngine(
      * @return the DNS reply payload, or null when the query must be dropped.
      */
     fun process(query: ByteArray): ByteArray? {
-        val question = DnsMessage.parseQuestion(query) ?: return null
-        val host = question.name.lowercase().trim('.')
-        if (host.isEmpty()) return null
-
-        if (matches(host, whitelist)) return forward(query)
-
-        if (BypassBlocklist.isBlockedHost(host) ||
-            matches(host, blacklist) ||
-            store?.contains(host) == true ||
-            (store == null && FallbackBlocklist.contains(host))
-        ) {
-            blockedCount++
-            return DnsMessage.buildNxdomain(query, question)
+        val question = DnsMessage.parseQuestion(query) ?: run {
+            AppLog.d("DNS malformed query -> DROPPED (malformed)")
+            return null
+        }
+        val host = question.name.trim().trim('.').lowercase()
+        if (host.isEmpty()) {
+            AppLog.d("DNS empty host -> DROPPED (malformed)")
+            return null
         }
 
-        val target = SafeSearch.targetFor(host)
-        if (target != null) {
-            resolveSafeSearch(query, question, target)?.let { return it }
-            // If the safe host could not be resolved, fall back to a normal answer
-            // rather than breaking the user's search entirely.
-        }
+        return when (val decision = policy.classify(host)) {
+            FilterDecision.Dropped -> {
+                AppLog.d("DNS $host -> DROPPED (malformed)")
+                null
+            }
 
-        return forward(query)
+            FilterDecision.Allowed -> {
+                AppLog.d("DNS $host -> ALLOWED")
+                forward(query)
+            }
+
+            is FilterDecision.Blocked -> {
+                blockedCount++
+                AppLog.d("DNS $host -> ${decision.describe()}")
+                DnsMessage.buildNxdomain(query, question)
+            }
+
+            is FilterDecision.Rewritten -> {
+                AppLog.d("DNS $host -> ${decision.describe()}")
+                val answer = resolveSafeSearch(query, question, decision.target)
+                if (answer == null) {
+                    AppLog.d("DNS SafeSearch fallback for $host -> forwarding to upstream")
+                    forward(query)
+                } else {
+                    answer
+                }
+            }
+        }
     }
 
     private fun forward(query: ByteArray): ByteArray? =
@@ -109,19 +123,6 @@ class DnsEngine(
             buffer.copyOf(reply.length)
         } catch (e: Exception) {
             null
-        }
-    }
-
-    /** True when [host] or one of its parent domains is present in [list]. */
-    private fun matches(host: String, list: Set<String>): Boolean {
-        if (list.isEmpty()) return false
-        var name = host
-        while (true) {
-            if (name in list) return true
-            val dot = name.indexOf('.')
-            if (dot < 0) return false
-            name = name.substring(dot + 1)
-            if (!name.contains('.')) return false
         }
     }
 
