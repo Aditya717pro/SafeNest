@@ -53,7 +53,8 @@ const SEED_DOMAINS = [
   'slutload.com', 'pornerbros.com', 'empflix.com', 'extremetube.com',
   'spankwire.com', 'hardsextube.com', 'drfap.com', 'porndig.com', 'pornhat.com',
   'tubegalore.com', 'porngo.com', 'cliphunter.com', 'madthumbs.com',
-  'xxxymovies.com', 'skeetchat.com', 'imlive.com', 'streamate.com', 'jasmin.com'
+  'xxxymovies.com', 'skeetchat.com', 'imlive.com', 'streamate.com', 'jasmin.com',
+  'banana.com'
 ];
 
 /**

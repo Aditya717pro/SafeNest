@@ -21,7 +21,8 @@ internal object FallbackBlocklist {
         "exhentai.org", "fapello.com", "erome.com", "onlyfans.com", "fansly.com",
         "manyvids.com", "porntrex.com", "sunporno.com", "missav.com", "jable.tv",
         "spankbang.com", "thumbzilla.com", "pornerbros.com", "spankwire.com",
-        "xhamster.com", "nuvid.com", "empflix.com", "extremetube.com"
+        "xhamster.com", "nuvid.com", "empflix.com", "extremetube.com",
+        "banana.com"
     )
 
     /** Suffix-aware check matching DomainStore.contains(). */
