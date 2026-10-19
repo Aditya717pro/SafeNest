@@ -17,7 +17,7 @@
  * layout keeps resident memory to roughly 4 bytes of overhead per domain.
  *
  * Usage:
- *   node safesurf/scripts/build-blocklist.js [--limit=N]
+ *   node scripts/build-blocklist.js [--limit=N]
  */
 
 import fs from 'fs';

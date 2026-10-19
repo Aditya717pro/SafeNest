@@ -30,15 +30,15 @@ Thumbs.db
 *.sln
 
 # Large raw filter list downloads (cached)
-safesurf/scripts/cache/
-safesurf/scripts/raw/
+scripts/cache/
+scripts/raw/
 
 # Android (SafeNest APK)
-safesurf/android/.gradle/
-safesurf/android/local.properties
-safesurf/android/.idea/
+android/.gradle/
+android/local.properties
+android/.idea/
 # Generated from extension/data/domains.json via: npm run build:blocklist
-safesurf/android/app/src/main/assets/blocklist.bin
+android/app/src/main/assets/blocklist.bin
 # Signing material - never commit
 *.keystore
 *.jks
