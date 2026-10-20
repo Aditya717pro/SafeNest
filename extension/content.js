@@ -18,6 +18,7 @@
 
   // Global State
   let isProtectionActive = true;
+  let engineReady = false;
   let profanityRegex = null;
   let domObserver = null;
   let imageObserver = null;
@@ -453,6 +454,12 @@
     isProtectionActive = enabled;
     console.log('[SafeSurf Content] Master protection state:', isProtectionActive);
 
+    // While the engine is still initializing (dictionaries/model loading),
+    // just record the state — the initial pass in initializeEngine will
+    // respect it. Bailing early avoids starting observers we would
+    // immediately have to tear down.
+    if (!engineReady) return;
+
     const flaggedList = document.querySelectorAll('[data-safesurf-flagged="true"]');
     const overlays = document.querySelectorAll('.safesurf-blur-overlay');
 
@@ -472,6 +479,15 @@
       startDynamicObserver();
     }
   }
+
+  // Register the toggle listener immediately (not after async init) so a
+  // popup toggle that lands while dictionaries/model are still loading
+  // is never missed.
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName === 'sync' && changes.enabled) {
+      handleProtectionToggle(changes.enabled.newValue);
+    }
+  });
 
   // ============================================================================
   // SECTION 4: Initialization Lifecycle
@@ -498,12 +514,8 @@
       startDynamicObserver();
     }
 
-    // 4. Listen for popup toggle events
-    chrome.storage.onChanged.addListener((changes, areaName) => {
-      if (areaName === 'sync' && changes.enabled) {
-        handleProtectionToggle(changes.enabled.newValue);
-      }
-    });
+    // 3. From this point, toggle events trigger live re-activation
+    engineReady = true;
   }
 
   if (document.readyState === 'loading') {

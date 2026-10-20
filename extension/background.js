@@ -27,6 +27,22 @@ let customWhitelistSet = new Set();
 let customBlacklistSet = new Set();
 let blockedDomainsSet = null;
 let domainLoadPromise = null;
+let settingsReadyPromise = null;
+let settingsRevision = 0;
+
+/**
+ * Ensures settings have been synced from storage at least once.
+ * Critical for MV3 cold starts: the service worker may be woken by a
+ * navigation event before any storage.onChanged event, in which case
+ * the in-memory enabled flag would still be the default (true).
+ * @returns {Promise<void>}
+ */
+function ensureSettingsSynced() {
+  if (!settingsReadyPromise) {
+    settingsReadyPromise = syncSettingsFromStorage();
+  }
+  return settingsReadyPromise;
+}
 
 // ============================================================================
 // DeclarativeNetRequest Dynamic Rules (Phase 5 SafeSearch Enforcer)
@@ -366,20 +382,52 @@ function matchesDomainOrSuffix(hostname, domainSet) {
 }
 
 /**
+ * Migrates legacy stats from chrome.storage.sync to chrome.storage.local.
+ * Older builds stored counters in sync, whose ~120 writes/min quota broke
+ * the master toggle. One-time best-effort migration; failures are ignored.
+ */
+async function migrateStatsToLocal() {
+  try {
+    const [syncData, localData] = await Promise.all([
+      chrome.storage.sync.get('stats'),
+      chrome.storage.local.get('stats')
+    ]);
+
+    if (syncData.stats && !localData.stats) {
+      await chrome.storage.local.set({ stats: syncData.stats });
+    }
+    if (syncData.stats) {
+      await chrome.storage.sync.remove('stats');
+    }
+  } catch (err) {
+    // Non-fatal: stats simply start from zero
+  }
+}
+
+/**
  * Synchronizes in-memory settings with chrome.storage.sync
+ * Guarded by settingsRevision so a slow cold-start read cannot clobber
+ * a newer toggle that already arrived via storage.onChanged.
  */
 async function syncSettingsFromStorage() {
+  const revisionAtStart = settingsRevision;
   try {
-    const data = await chrome.storage.sync.get(['enabled', 'customWhitelist', 'customBlacklist', 'stats']);
+    const data = await chrome.storage.sync.get(['enabled', 'customWhitelist', 'customBlacklist']);
 
     const updates = {};
     if (typeof data.enabled === 'undefined') updates.enabled = DEFAULT_SETTINGS.enabled;
     if (!data.customWhitelist) updates.customWhitelist = DEFAULT_SETTINGS.customWhitelist;
     if (!data.customBlacklist) updates.customBlacklist = DEFAULT_SETTINGS.customBlacklist;
-    if (!data.stats) updates.stats = DEFAULT_SETTINGS.stats;
 
     if (Object.keys(updates).length > 0) {
       await chrome.storage.sync.set(updates);
+    }
+
+    // A storage change landed while we were reading — it is newer, keep it.
+    if (settingsRevision !== revisionAtStart) {
+      await updateBadge(isProtectionEnabled);
+      await updateSafeSearchRules(isProtectionEnabled);
+      return;
     }
 
     isProtectionEnabled = typeof data.enabled !== 'undefined' ? data.enabled : DEFAULT_SETTINGS.enabled;
@@ -440,17 +488,29 @@ async function evaluateUrl(urlString) {
 }
 
 /**
+ * Increments a named counter in persistent stats storage.
+ * Stats live in chrome.storage.local on purpose: storage.sync enforces a
+ * hard ~120 writes/minute quota, and per-word stat writes would exhaust it,
+ * breaking the master toggle's sync writes. local has no write-rate quota.
+ * @param {'blockedSites'|'maskedWords'|'blurredImages'} key
+ * @param {number} amount
+ */
+async function incrementStat(key, amount = 1) {
+  try {
+    const data = await chrome.storage.local.get('stats');
+    const stats = data.stats || { blockedSites: 0, maskedWords: 0, blurredImages: 0 };
+    stats[key] = (stats[key] || 0) + amount;
+    await chrome.storage.local.set({ stats });
+  } catch (err) {
+    console.error(`[SafeSurf SW] Failed to record ${key} stat:`, err);
+  }
+}
+
+/**
  * Increments blocked site count in persistent storage
  */
 async function recordBlockedSite() {
-  try {
-    const data = await chrome.storage.sync.get('stats');
-    const stats = data.stats || { blockedSites: 0, maskedWords: 0, blurredImages: 0 };
-    stats.blockedSites = (stats.blockedSites || 0) + 1;
-    await chrome.storage.sync.set({ stats });
-  } catch (err) {
-    console.error('[SafeSurf SW] Failed to record blocked site stat:', err);
-  }
+  return incrementStat('blockedSites', 1);
 }
 
 // ============================================================================
@@ -464,6 +524,10 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
   // Ignore non-web schemes and internal extension pages
   if (!url.startsWith('http://') && !url.startsWith('https://')) return;
   if (url.startsWith(chrome.runtime.getURL(''))) return;
+
+  // MV3 cold-start guard: the worker may be woken by this very event,
+  // so make sure the enabled flag is loaded before trusting it.
+  await ensureSettingsSynced();
 
   // If protection is toggled off, allow immediately
   if (!isProtectionEnabled) return;
@@ -493,20 +557,29 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
 // ============================================================================
 chrome.runtime.onInstalled.addListener(async (details) => {
   console.log('[SafeSurf SW] onInstalled:', details.reason);
-  await syncSettingsFromStorage();
+  settingsReadyPromise = null;
+  await ensureSettingsSynced();
   ensureDomainSetLoaded(); // Pre-warm database
   ensureProfanityLoaded(); // Pre-warm profanity matcher
 });
 
 chrome.runtime.onStartup.addListener(async () => {
   console.log('[SafeSurf SW] onStartup');
-  await syncSettingsFromStorage();
+  settingsReadyPromise = null;
+  await ensureSettingsSynced();
   ensureDomainSetLoaded(); // Pre-warm database
   ensureProfanityLoaded(); // Pre-warm profanity matcher
 });
 
 chrome.storage.onChanged.addListener(async (changes, areaName) => {
   if (areaName === 'sync') {
+    // Invalidate any in-flight cold-start sync when rule state changes,
+    // so a slow storage read cannot clobber a newer toggle/list edit.
+    if (changes.enabled || changes.customWhitelist || changes.customBlacklist) {
+      settingsRevision++;
+      settingsReadyPromise = Promise.resolve();
+    }
+
     if (changes.enabled) {
       isProtectionEnabled = changes.enabled.newValue;
       await updateBadge(isProtectionEnabled);
@@ -526,20 +599,33 @@ chrome.storage.onChanged.addListener(async (changes, areaName) => {
 // ============================================================================
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'GET_PROTECTION_STATUS') {
-    chrome.storage.sync.get(['enabled', 'stats', 'customWhitelist', 'customBlacklist'], (data) => {
+    ensureSettingsSynced().then(async () => {
+      const [syncData, localData] = await Promise.all([
+        chrome.storage.sync.get(['enabled', 'customWhitelist', 'customBlacklist']),
+        chrome.storage.local.get('stats')
+      ]);
       sendResponse({
-        enabled: data.enabled ?? true,
-        stats: data.stats ?? DEFAULT_SETTINGS.stats,
-        customWhitelist: data.customWhitelist ?? [],
-        customBlacklist: data.customBlacklist ?? [],
+        enabled: syncData.enabled ?? true,
+        stats: localData.stats ?? DEFAULT_SETTINGS.stats,
+        customWhitelist: syncData.customWhitelist ?? [],
+        customBlacklist: syncData.customBlacklist ?? [],
         totalBlockedDomains: blockedDomainsSet ? blockedDomainsSet.size : 988911
       });
     });
     return true;
   }
 
+  if (message.type === 'INCREMENT_STAT') {
+    const { key, amount = 1 } = message.payload || {};
+    if (key === 'blockedSites' || key === 'maskedWords' || key === 'blurredImages') {
+      incrementStat(key, amount);
+    }
+    sendResponse({ success: true });
+    return false;
+  }
+
   if (message.type === 'CHECK_URL') {
-    evaluateUrl(message.url).then(sendResponse);
+    ensureSettingsSynced().then(() => evaluateUrl(message.url)).then(sendResponse);
     return true;
   }
 
@@ -584,6 +670,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 // Initialize on background worker boot
-syncSettingsFromStorage();
+migrateStatsToLocal();
+ensureSettingsSynced();
 ensureDomainSetLoaded();
 ensureProfanityLoaded();

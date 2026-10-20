@@ -336,12 +336,13 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
     if (changes.enabled) {
       updateProtectionUI(changes.enabled.newValue);
     }
-    if (changes.stats) {
-      updateStatsUI(changes.stats.newValue);
-    }
     if (changes.customWhitelist || changes.customBlacklist) {
       refreshAllData();
     }
+  }
+  // Stats live in storage.local (storage.sync's write quota broke the toggle)
+  if (areaName === 'local' && changes.stats) {
+    updateStatsUI(changes.stats.newValue);
   }
 });
 
