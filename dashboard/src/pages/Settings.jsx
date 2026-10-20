@@ -107,17 +107,17 @@ export default function Settings() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-black text-sky-950 tracking-tight flex items-center gap-2">
             <span>Protection Rules &amp; Security</span>
-            <Sparkles className="w-5 h-5 text-emerald-400" />
+            <Sparkles className="w-5 h-5 text-sky-500" />
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Configure exception rules, safe search enforcement, and anti-relapse challenge settings.
           </p>
         </div>
 
         {feedback && (
-          <div className="px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-2 animate-fadeIn">
+          <div className="px-4 py-2 rounded-xl bg-sky-100 border border-sky-300 text-sky-700 text-xs font-semibold flex items-center gap-2 animate-fadeIn">
             <Check className="w-4 h-4" />
             <span>{feedback}</span>
           </div>
@@ -125,26 +125,26 @@ export default function Settings() {
       </div>
 
       {/* Security & Enforcement Policies */}
-      <div className="glass-card p-6 border-white/10 space-y-5">
-        <h2 className="text-sm font-bold text-white uppercase tracking-wider text-slate-400">
+      <div className="glass-card p-6 border-sky-100 space-y-5">
+        <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500">
           Core Protection Policies
         </h2>
 
         {/* SafeSearch Toggle */}
-        <div className="flex items-center justify-between p-4 rounded-xl bg-slate-950/60 border border-white/5">
+        <div className="flex items-center justify-between p-4 rounded-xl bg-sky-50 border border-sky-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+            <div className="w-10 h-10 rounded-lg bg-sky-100 border border-sky-200 flex items-center justify-center text-sky-600">
               <Search className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-sm font-bold text-white block">Strict SafeSearch Enforcement</span>
-              <span className="text-xs text-slate-400">Locks Google, Bing, DuckDuckGo to strict safe mode and enforces YouTube Restricted Mode.</span>
+              <span className="text-sm font-bold text-slate-800 block">Strict SafeSearch Enforcement</span>
+              <span className="text-xs text-slate-500">Locks Google, Bing, DuckDuckGo to strict safe mode and enforces YouTube Restricted Mode.</span>
             </div>
           </div>
           <button
             onClick={() => toggleSetting('strictSafeSearch')}
             className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${
-              settings.strictSafeSearch ? 'bg-emerald-500' : 'bg-slate-700'
+              settings.strictSafeSearch ? 'bg-sky-500' : 'bg-slate-300'
             }`}
           >
             <span className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${
@@ -154,20 +154,20 @@ export default function Settings() {
         </div>
 
         {/* AI Image Blur Toggle */}
-        <div className="flex items-center justify-between p-4 rounded-xl bg-slate-950/60 border border-white/5">
+        <div className="flex items-center justify-between p-4 rounded-xl bg-sky-50 border border-sky-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+            <div className="w-10 h-10 rounded-lg bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-600">
               <Eye className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-sm font-bold text-white block">On-Device AI NSFW Image Blurring</span>
-              <span className="text-xs text-slate-400">Locally inspects images using NSFW.js MobileNetV2 and locks explicit pictures behind a blur shield.</span>
+              <span className="text-sm font-bold text-slate-800 block">On-Device AI NSFW Image Blurring</span>
+              <span className="text-xs text-slate-500">Locally inspects images using NSFW.js MobileNetV2 and locks explicit pictures behind a blur shield.</span>
             </div>
           </div>
           <button
             onClick={() => toggleSetting('blockExplicitImages')}
             className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${
-              settings.blockExplicitImages ? 'bg-cyan-500' : 'bg-slate-700'
+              settings.blockExplicitImages ? 'bg-blue-500' : 'bg-slate-300'
             }`}
           >
             <span className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${
@@ -177,20 +177,20 @@ export default function Settings() {
         </div>
 
         {/* 60s Challenge Anti-Relapse Toggle */}
-        <div className="flex items-center justify-between p-4 rounded-xl bg-slate-950/60 border border-amber-500/20">
+        <div className="flex items-center justify-between p-4 rounded-xl bg-sky-50 border border-amber-200">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+            <div className="w-10 h-10 rounded-lg bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-600">
               <Lock className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-sm font-bold text-white block">Anti-Relapse Challenge Lock (60-sec Cooldown)</span>
-              <span className="text-xs text-amber-300/80">Requires an unskippable 60-second cooldown timer + typing a commitment pledge before protection can be disabled.</span>
+              <span className="text-sm font-bold text-slate-800 block">Anti-Relapse Challenge Lock (60-sec Cooldown)</span>
+              <span className="text-xs text-amber-600">Requires an unskippable 60-second cooldown timer + typing a commitment pledge before protection can be disabled.</span>
             </div>
           </div>
           <button
             onClick={() => toggleSetting('challengeRequired')}
             className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${
-              settings.challengeRequired ? 'bg-amber-500' : 'bg-slate-700'
+              settings.challengeRequired ? 'bg-amber-500' : 'bg-slate-300'
             }`}
           >
             <span className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${
@@ -203,14 +203,14 @@ export default function Settings() {
       {/* Whitelist and Blacklist Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Whitelist Card */}
-        <div className="glass-card p-6 border-white/10 flex flex-col justify-between">
+        <div className="glass-card p-6 border-sky-100 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-sm font-bold text-emerald-400">Custom Whitelist</h3>
-                <p className="text-xs text-slate-400">Domains that will always bypass filtering</p>
+                <h3 className="text-sm font-bold text-sky-600">Custom Whitelist</h3>
+                <p className="text-xs text-slate-500">Domains that will always bypass filtering</p>
               </div>
-              <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300">
+              <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-sky-100 text-sky-700">
                 {settings.customWhitelist.length}
               </span>
             </div>
@@ -221,11 +221,11 @@ export default function Settings() {
                 value={newWhitelistDomain}
                 onChange={(e) => setNewWhitelistDomain(e.target.value)}
                 placeholder="e.g. reddit.com"
-                className="flex-1 bg-slate-950/70 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                className="flex-1 bg-white border border-sky-200 rounded-lg px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-sky-500"
               />
               <button
                 type="submit"
-                className="px-3 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-1 cursor-pointer"
+                className="px-3 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-white font-bold text-xs flex items-center gap-1 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Add</span>
@@ -234,12 +234,12 @@ export default function Settings() {
 
             <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
               {settings.customWhitelist.length === 0 ? (
-                <p className="text-xs text-slate-500 italic text-center py-4">No custom whitelisted domains</p>
+                <p className="text-xs text-slate-400 italic text-center py-4">No custom whitelisted domains</p>
               ) : (
                 settings.customWhitelist.map((domain) => (
-                  <div key={domain} className="flex items-center justify-between p-2 rounded-lg bg-slate-950/40 border border-white/5 text-xs text-slate-300">
+                  <div key={domain} className="flex items-center justify-between p-2 rounded-lg bg-sky-50 border border-sky-100 text-xs text-slate-700">
                     <span>{domain}</span>
-                    <button onClick={() => removeWhitelist(domain)} className="text-slate-500 hover:text-rose-400 p-1">
+                    <button onClick={() => removeWhitelist(domain)} className="text-slate-400 hover:text-rose-600 p-1">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -250,14 +250,14 @@ export default function Settings() {
         </div>
 
         {/* Blacklist Card */}
-        <div className="glass-card p-6 border-white/10 flex flex-col justify-between">
+        <div className="glass-card p-6 border-sky-100 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-sm font-bold text-rose-400">Custom Blacklist</h3>
-                <p className="text-xs text-slate-400">Additional domains to always block</p>
+                <h3 className="text-sm font-bold text-rose-600">Custom Blacklist</h3>
+                <p className="text-xs text-slate-500">Additional domains to always block</p>
               </div>
-              <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-rose-500/20 text-rose-300">
+              <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-700">
                 {settings.customBlacklist.length}
               </span>
             </div>
@@ -268,7 +268,7 @@ export default function Settings() {
                 value={newBlacklistDomain}
                 onChange={(e) => setNewBlacklistDomain(e.target.value)}
                 placeholder="e.g. distraction.com"
-                className="flex-1 bg-slate-950/70 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-rose-500"
+                className="flex-1 bg-white border border-sky-200 rounded-lg px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500"
               />
               <button
                 type="submit"
@@ -281,12 +281,12 @@ export default function Settings() {
 
             <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
               {settings.customBlacklist.length === 0 ? (
-                <p className="text-xs text-slate-500 italic text-center py-4">No custom blacklisted domains</p>
+                <p className="text-xs text-slate-400 italic text-center py-4">No custom blacklisted domains</p>
               ) : (
                 settings.customBlacklist.map((domain) => (
-                  <div key={domain} className="flex items-center justify-between p-2 rounded-lg bg-slate-950/40 border border-white/5 text-xs text-slate-300">
+                  <div key={domain} className="flex items-center justify-between p-2 rounded-lg bg-sky-50 border border-sky-100 text-xs text-slate-700">
                     <span>{domain}</span>
-                    <button onClick={() => removeBlacklist(domain)} className="text-slate-500 hover:text-rose-400 p-1">
+                    <button onClick={() => removeBlacklist(domain)} className="text-slate-400 hover:text-rose-600 p-1">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>

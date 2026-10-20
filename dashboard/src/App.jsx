@@ -20,7 +20,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-[#090d16] text-slate-100 flex flex-col">
+      <div className="min-h-screen bg-sky-50 text-slate-800 flex flex-col">
         {isAuthenticated && (
           <Navbar user={user} onLogout={() => setUser(null)} />
         )}

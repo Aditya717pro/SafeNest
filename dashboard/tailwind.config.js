@@ -8,9 +8,14 @@ export default {
     extend: {
       colors: {
         surf: {
-          bg: '#090d16',
-          card: '#0f172a',
-          border: 'rgba(255, 255, 255, 0.08)',
+          bg: '#f0f9ff',
+          card: '#ffffff',
+          border: 'rgba(14, 165, 233, 0.18)',
+          sky: '#0ea5e9',
+          skysoft: '#38bdf8',
+          blue: '#2563eb',
+          navy: '#1e3a8a',
+          deep: '#0c4a6e',
           emerald: '#10b981',
           rose: '#f43f5e',
           amber: '#f59e0b',
